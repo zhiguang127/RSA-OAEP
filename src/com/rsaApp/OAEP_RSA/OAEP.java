@@ -133,6 +133,8 @@ public class OAEP {
     public String OaepDecrypt(String message, String G) throws UnsupportedEncodingException {
         String X = message.substring(0, RSA.Length - r_Length);
         String Y = message.substring(RSA.Length - r_Length);
+        System.out.println(X.length());
+        System.out.println(Y.length());
         //根据H的值的不同，选择不同的H运算
         //其中H的值可能为“MD4”，“SHA256”，“MD5”
         switch (G) {
@@ -210,7 +212,6 @@ public class OAEP {
     //构造函数
     public OAEP() {
     }
-
 
     //  测试一下
 //    public static void main(String[] args) throws UnsupportedEncodingException {

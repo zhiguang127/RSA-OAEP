@@ -33,22 +33,22 @@ public class Util {
 
     //OAEP所需要的异或运算
     public static String XOR(String a, String b) {
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (int i = 0; i < a.length(); i++) {
             if ((int) a.charAt(i) == (int) b.charAt((i % 256))) {
-                result += "0";
+                result.append("0");
             } else {
-                result += "1";
+                result.append("1");
             }
         }
-        return result;
+        return result.toString();
     }
 
     //OAEP填充完之后所需要的oaepToString函数
     public static String oaepToString(byte[] paddedMessage) {
         StringBuilder str = new StringBuilder();
-        for (int i = 0; i < paddedMessage.length; i++) {
-            str.append((int) paddedMessage[i]);
+        for (byte b : paddedMessage) {
+            str.append((int) b);
         }
         return str.toString();
     }

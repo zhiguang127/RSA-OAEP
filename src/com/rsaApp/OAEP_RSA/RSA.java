@@ -2,31 +2,31 @@ package com.rsaApp.OAEP_RSA;
 
 import javax.crypto.Cipher;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
-
 
 public class RSA {
     public static final String KEY_ALGORITHM = "RSA";
     private static final String PUBLIC_KEY = "RSAPublicKey";
     private static final String PRIVATE_KEY = "RSAPrivateKey";
     public static int Length = 1024;
-    private static final int messageLength = 1024;
+    private static int messageLength = 1024;
 
     // 1024 bits 的 RSA 密钥对，最大加密明文大小
     private static final int MAX_ENCRYPT_BLOCK = 117;
     // 1024 bits 的 RSA 密钥对，最大解密密文大小
     private static final int MAX_DECRYPT_BLOCK = 128;
 
-    private OAEP oaep;
+    private final OAEP oaep;
 
+    public void setMessageLength(int length){
+        messageLength = length;
+    }
     public RSA() {
         this.oaep = new OAEP();
     }
@@ -39,7 +39,7 @@ public class RSA {
         return encryptBASE64(key.getEncoded());
     }
 
-//    // 获取私钥字符串
+    //    // 获取私钥字符串
     public static String getPrivateKeyStr(Map<String, Object> keyMap) {
         // 获得 map 中的私钥对象，转为 key 对象
         Key key = (Key) keyMap.get(PRIVATE_KEY);
@@ -72,17 +72,17 @@ public class RSA {
     }
 
     // 分段加密
-    public String encrypt(String plainText, String publicKeyStr) throws Exception {
+    public String encrypt(String plainText, String publicKeyStr, String G) throws Exception {
         //首先对message进行OAEP的填充
         byte[] paddedMessage0 = this.oaep.Padding(plainText);
         int l = paddedMessage0.length;
 
         String padedMessage = Util.oaepToString(paddedMessage0);
         System.out.println("padedMessage: " + padedMessage);
-        String oaepEncrypted = oaep.OaepEncrypt(padedMessage, "SHA256");
+        String oaepEncrypted = oaep.OaepEncrypt(padedMessage, G);
         System.out.println("oaepEncrypted: " + oaepEncrypted);
 
-        byte[] plainTextArray = oaepEncrypted.getBytes("UTF-8");
+        byte[] plainTextArray = oaepEncrypted.getBytes(StandardCharsets.UTF_8);
         PublicKey publicKey = getPublicKey(publicKeyStr);
         Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
@@ -107,7 +107,7 @@ public class RSA {
     }
 
     // 分段解密
-    public String decrypt(String encryptTextHex, String privateKeyStr) throws Exception {
+    public String decrypt(String encryptTextHex, String privateKeyStr, String G) throws Exception {
         byte[] encryptText = Base64.getDecoder().decode(encryptTextHex);
         PrivateKey privateKey = getPrivateKey(privateKeyStr);
         Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
@@ -133,13 +133,16 @@ public class RSA {
 
         String rsaDecrypted = new String(plainText);
         System.out.println("rsaDecrypted: " + rsaDecrypted);
-        String oaepDecrypted = this.oaep.OaepDecrypt(rsaDecrypted, "SHA256");
+        String oaepDecrypted = this.oaep.OaepDecrypt(rsaDecrypted, G);
         System.out.println("oaepDecrypted: " + oaepDecrypted);
 
         //String result0 = oaepDecrypted.substring(0, this.oaep.getMessageLength());
+        //System.out.println("result0: " + result0);
         //String result = this.oaep.BinaryToString(result0);
-        String result = this.oaep.BinaryToString(oaepDecrypted);
-        return result;
+        //return result;
+
+        return this.oaep.BinaryToString(oaepDecrypted);
+
     }
 
     //测试
@@ -155,14 +158,24 @@ public class RSA {
 
         String message = "欲穷千里目，更上一层楼";
         System.out.println("message: " + message);
-        String rsaEncrypted = rsa.encrypt(message, publicKey);
+        String rsaEncrypted = rsa.encrypt(message, publicKey, "SHA256");
         System.out.println("rsaEncrypted: " + rsaEncrypted);
 
-        String rsaDecrypted = rsa.decrypt(rsaEncrypted, privateKey);
+        String rsaDecrypted = rsa.decrypt(rsaEncrypted, privateKey, "SHA256");
         System.out.println("finaDecrypted: " + rsaDecrypted);
+        //获取rsa的oaep对象的messageLength
+        int l = rsa.oaep.getMessageLength();
+        rsa.setMessageLength(l);
+        System.out.println("messageLength: " + messageLength);
+
+
+//        String test = "111001101010110010110010111001111010100110110111111001011000110110000011111010011000011110001100111001111001101110101110111011111011110010001100111001101001101110110100111001001011100010001010111001001011100010000000111001011011000110000010111001101010010110111100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001";
+//        int i=1;
+//        for(int l=0;l<test.length();l++){
+//           i++;
+//        }
+//        System.out.println(i);
     }
-
-
 
 }
 

@@ -11,54 +11,61 @@ import java.util.Map;
 
 // @SuppressWarnings("serial")
 public class RsaView extends JPanel {
-
     // 两个内部成员对象
     private final KeysPanel keys;
-    private final CryptionPanel cryption;
+    private final CryptionPanel crypto;
+    //一个外部成员对象
     private final RSA rsa = new RSA();
+    private int messageLength = 0;
+
+
+    private void setMessagelength(int length){
+        messageLength = length;
+    }
 
     public RsaView() {
         setLayout(null);
         this.keys = new KeysPanel(this);
-        this.cryption = new CryptionPanel(this);
+        this.crypto = new CryptionPanel(this);
         handleEvents();
     }
 
     //事件处理函数，全都调用工具类
     private void handleEvents() {
-        ComponentUtil.onKeyReleased(() -> applyErrorProtection(), keys.privateKeyText, keys.publicKeyText, cryption.cryptionInputText);
-        ComponentUtil.onMouseReleased(() -> handleClearButton(), keys.clearButton);
-        ComponentUtil.onMouseReleased(() -> handleGeneratedClearButton(), cryption.genClearButton);
-        ComponentUtil.onMouseReleased(() -> handleInputClearButton(), cryption.clearButton);
+        ComponentUtil.onKeyReleased(this::applyErrorProtection, keys.privateKeyText, keys.publicKeyText, crypto.cryptoInputText);
+        ComponentUtil.onMouseReleased(this::handleClearButton, keys.clearButton);
+        ComponentUtil.onMouseReleased(this::handleGeneratedClearButton, crypto.genClearButton);
+        ComponentUtil.onMouseReleased(this::handleInputClearButton, crypto.clearButton);
 
         //当鼠标点击时，调用RSAKeyGenertor函数生成密钥对
         ComponentUtil.onMouseReleased(() -> {
             try {
                 generateKeyPair();
             } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "密钥生成异常: " + e.getMessage(), "错误", JOptionPane.ERROR_MESSAGE);
                 throw new RuntimeException(e);
             }
         }, keys.generateButton);
-        ComponentUtil.onMouseReleased(() -> cryption.cryptionInputText.setText(cryption.generatedText.getText()), cryption.useGeneratedButton);
+        ComponentUtil.onMouseReleased(() -> crypto.cryptoInputText.setText(crypto.generatedText.getText()), crypto.useGeneratedButton);
 
-        //ComponentUtil.onMouseReleased(() -> generateRsaResult(Backend.get().getRsaEncrypter(), keys.publicKeyText), cryption.encrypteButton);
-        // ComponentUtil.onMouseReleased(() -> generateRsaResult(Backend.get().getRsaDecrypter(), keys.privateKeyText), cryption.decrypteButton);
         //当鼠标点击时，调用RSA中加密函数
         ComponentUtil.onMouseReleased(() -> {
             try {
-                RsaEncry(keys.publicKeyText);
+                RsaEncrypt(keys.publicKeyText, keys.paddingList);
             } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "加密异常 " , "错误", JOptionPane.ERROR_MESSAGE);
                 throw new RuntimeException(e);
             }
-        }, cryption.encrypteButton);
+        }, crypto.encryptButton);
         //当鼠标点击时，调用RSA中解密函数
         ComponentUtil.onMouseReleased(() -> {
             try {
-                RsaDecry(keys.privateKeyText);
+                RsaDecrypt(keys.privateKeyText, keys.paddingList);
             } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "解密异常，请检查密文是否合法"  , "错误", JOptionPane.ERROR_MESSAGE);
                 throw new RuntimeException(e);
             }
-        }, cryption.decrypteButton);
+        }, crypto.decryptButton);
 
     }
 
@@ -72,67 +79,68 @@ public class RsaView extends JPanel {
         applyErrorProtection();
     }
 
-    private void RsaEncry(JTextArea keyPane) throws Exception {
+    private void RsaEncrypt(JTextArea keyPane, JComboBox paddings) throws Exception {
         String key = keyPane.getText();
+        String G = paddings.getSelectedItem().toString();
+        System.out.println("PublicKey: " + key);
+        System.out.println("G: " + G);
         //直接调用RSA中的加密函数
-        String message = cryption.cryptionInputText.getText();
+        String message = crypto.cryptoInputText.getText();
+        //设置messageLength
+        setMessagelength(message.length());
         //调用RSA中的加密函数
-        String rsaEncrypted = rsa.encrypt(message, key);
-        cryption.generatedText.setText(rsaEncrypted);
+        String rsaEncrypted = rsa.encrypt(message, key, G);
+        crypto.generatedText.setText(rsaEncrypted);
 
         applyErrorProtection();
     }
 
-    private void  RsaDecry(JTextArea KeyPane) throws Exception {
+    private void RsaDecrypt(JTextArea KeyPane, JComboBox paddinglist) throws Exception {
         String key = KeyPane.getText();
-        System.out.println("key: " + key);
+        String G = paddinglist.getSelectedItem().toString();
+        System.out.println("PrivateKey: " + key);
+        System.out.println("G: " + G);
         //直接调用RSA中的解密函数
-        String message = cryption.cryptionInputText.getText();
+        String message = crypto.cryptoInputText.getText();
         RSA rsa = new RSA();
         //调用RSA中的解密函数
-        String rsaDecrypted = rsa.decrypt(message, key);
-        cryption.generatedText.setText(rsaDecrypted);
+        String rsaDecrypted = rsa.decrypt(message, key, G);
+        //截取messageLength长度的字符串
+        String result0 = rsaDecrypted.substring(0, messageLength);
+        crypto.generatedText.setText(result0);
 
         applyErrorProtection();
     }
 
     //这个类用于密钥面板
     private static class KeysPanel extends JPanel {
-        private final JLabel privateKeyLabel;
-        private final JLabel publicKeyLabel;
-        private final JLabel paddingLabel;
         private final JTextArea privateKeyText;
         private final JTextArea publicKeyText;
-        private final JScrollPane privateKeyScroller;
-        private final JScrollPane publicKeyScroller;
         private final JComboBox paddingList;
         private final JButton generateButton;
         private final JButton clearButton;
 
         public KeysPanel(RsaView parent) {
-
-            //设置属性，这里属性是一个边框，边框的标题是Settings，边框的颜色是黑色，边框的位置是左对齐，边框的位置是上对齐
+            //设置边框
             setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Keys", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(101, 208, 208)));
             setBounds(10, 11, 564, 224);
             setLayout(null);
 
-
-            privateKeyLabel = new JLabel("Private Key:");
+            JLabel privateKeyLabel = new JLabel("Private Key:");
             privateKeyLabel.setBounds(10, 24, 71, 14);
             privateKeyText = new JTextArea();
             privateKeyText.setLineWrap(true);
             privateKeyText.setBounds(10, 43, 525, 45);
-            privateKeyScroller = new JScrollPane(privateKeyText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            JScrollPane privateKeyScroller = new JScrollPane(privateKeyText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             privateKeyScroller.setBounds(10, 43, 525, 45);
 
-            publicKeyLabel = new JLabel("Public Key:");
+            JLabel publicKeyLabel = new JLabel("Public Key:");
             publicKeyLabel.setBounds(10, 105, 71, 14);
             publicKeyText = new JTextArea();
             publicKeyText.setLineWrap(true);
             publicKeyText.setBounds(10, 124, 525, 45);
-            publicKeyScroller = new JScrollPane(publicKeyText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            JScrollPane publicKeyScroller = new JScrollPane(publicKeyText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             publicKeyScroller.setBounds(10, 124, 525, 45);
-
 
             generateButton = new JButton("生成密钥对");
             generateButton.setBounds(253, 190, 136, 23);
@@ -140,17 +148,24 @@ public class RsaView extends JPanel {
             clearButton.setBounds(399, 190, 136, 23);
             clearButton.setEnabled(false);
 
-            paddingLabel = new JLabel("H函数:");
+            JLabel paddingLabel = new JLabel("H函数:");
             paddingLabel.setBounds(10, 175, 46, 14);
-            paddingList = new JComboBox<>();
-            //for (CryptionPadding padding : Backend.get().getRsaPaddings())
-            //    paddingList.addItem(padding);
-            //paddingList.setBounds(10, 190, 233, 21);
-            //paddingList.setSelectedIndex(1);
 
+            paddingList = new JComboBox();
+            //把H函数添加到下拉框中
+            String[] paddings = {"MD4", "MD5", "SHA256"};
+            for (String padding : paddings) {
+                try {
+                    paddingList.addItem(padding);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            paddingList.setBounds(10, 190, 233, 21);
+            paddingList.setSelectedIndex(1);
             ComponentUtil.add(this, privateKeyLabel, publicKeyLabel,
-            		privateKeyScroller, publicKeyScroller, generateButton,
-            		clearButton,paddingLabel);
+                    privateKeyScroller, publicKeyScroller, generateButton,
+                    clearButton, paddingLabel, paddingList);
 
             ComponentUtil.add(parent, this);
         }
@@ -158,14 +173,10 @@ public class RsaView extends JPanel {
 
     //这个类用于加密面板
     private static class CryptionPanel extends JPanel {
-        private final JLabel cryptionInputLabel;
-        private final JLabel generatedLabel;
-        private final JTextArea cryptionInputText;
+        private final JTextArea cryptoInputText;
         private final JTextArea generatedText;
-        private final JScrollPane cryptionInputScroller;
-        private final JScrollPane generatedScroller;
-        private final JButton encrypteButton;
-        private final JButton decrypteButton;
+        private final JButton encryptButton;
+        private final JButton decryptButton;
         private final JButton useGeneratedButton;
         private final JButton clearButton;
         private final JButton genClearButton;
@@ -177,30 +188,29 @@ public class RsaView extends JPanel {
             setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Encryption / Decryption", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(101, 208, 208)));
             setBounds(10, 265, 564, 258);
 
-            cryptionInputLabel = new JLabel("Cypher / Plain Text");
+            JLabel cryptionInputLabel = new JLabel("Cypher / Plain Text");
             cryptionInputLabel.setBounds(10, 24, 110, 14);
-            cryptionInputText = new JTextArea();
-            cryptionInputText.setLineWrap(true);
-            cryptionInputText.setBounds(10, 43, 525, 45);
-            cryptionInputScroller = new JScrollPane(cryptionInputText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            cryptoInputText = new JTextArea();
+            cryptoInputText.setLineWrap(true);
+            cryptoInputText.setBounds(10, 43, 525, 45);
+            JScrollPane cryptionInputScroller = new JScrollPane(cryptoInputText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             cryptionInputScroller.setBounds(10, 43, 525, 45);
 
-            generatedLabel = new JLabel("Generated:");
+            JLabel generatedLabel = new JLabel("Generated:");
             generatedLabel.setBounds(10, 149, 71, 14);
             generatedText = new JTextArea();
             generatedText.setLineWrap(true);
             generatedText.setEditable(false);
             generatedText.setBounds(10, 168, 525, 45);
-            generatedScroller = new JScrollPane(generatedText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            JScrollPane generatedScroller = new JScrollPane(generatedText, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             generatedScroller.setBounds(10, 168, 525, 45);
 
-
-            encrypteButton = new JButton("加密");
-            encrypteButton.setBounds(10, 96, 136, 23);
-            encrypteButton.setEnabled(false);
-            decrypteButton = new JButton("解密");
-            decrypteButton.setBounds(160, 96, 136, 23);
-            decrypteButton.setEnabled(false);
+            encryptButton = new JButton("加密");
+            encryptButton.setBounds(10, 96, 136, 23);
+            encryptButton.setEnabled(false);
+            decryptButton = new JButton("解密");
+            decryptButton.setBounds(160, 96, 136, 23);
+            decryptButton.setEnabled(false);
             useGeneratedButton = new JButton("交换明/密文");
             useGeneratedButton.setBounds(10, 223, 136, 23);
             useGeneratedButton.setEnabled(false);
@@ -212,8 +222,8 @@ public class RsaView extends JPanel {
             clearButton.setEnabled(false);
 
             ComponentUtil.add(this, cryptionInputLabel, generatedLabel,
-            		cryptionInputScroller, generatedScroller, encrypteButton,
-            		decrypteButton, useGeneratedButton, genClearButton, clearButton);
+                    cryptionInputScroller, generatedScroller, encryptButton,
+                    decryptButton, useGeneratedButton, genClearButton, clearButton);
 
             ComponentUtil.add(parent, this);
         }
@@ -229,40 +239,38 @@ public class RsaView extends JPanel {
 
     //这个函数用于处理生成密文清除按钮
     private void handleGeneratedClearButton() {
-        cryption.generatedText.setText("");
+        crypto.generatedText.setText("");
         applyErrorProtection();
     }
 
     //这个函数用于处理输入明文的清除按钮
     private void handleInputClearButton() {
-        cryption.cryptionInputText.setText("");
+        crypto.cryptoInputText.setText("");
         applyErrorProtection();
     }
 
-
     //这个函数用于处理错误保护
     private void applyErrorProtection() {
-        boolean cryptionPossible = !keys.publicKeyText.getText().isEmpty() && !cryption.cryptionInputText.getText().isEmpty();
-        cryption.encrypteButton.setEnabled(cryptionPossible);
+        boolean cryptoPossible = !keys.publicKeyText.getText().isEmpty() && !crypto.cryptoInputText.getText().isEmpty();
+        crypto.encryptButton.setEnabled(cryptoPossible);
 
-        boolean decryptionPossible = !keys.privateKeyText.getText().isEmpty() && !cryption.cryptionInputText.getText().isEmpty();
-        cryption.decrypteButton.setEnabled(decryptionPossible);
+        boolean decryptionPossible = !keys.privateKeyText.getText().isEmpty() && !crypto.cryptoInputText.getText().isEmpty();
+        crypto.decryptButton.setEnabled(decryptionPossible);
 
         boolean clearIsUseful = !keys.publicKeyText.getText().isEmpty() || !keys.privateKeyText.getText().isEmpty();
         keys.clearButton.setEnabled(clearIsUseful);
 
-        boolean inputClearIsUseful = !cryption.cryptionInputText.getText().isEmpty();
-        cryption.clearButton.setEnabled(inputClearIsUseful);
+        boolean inputClearIsUseful = !crypto.cryptoInputText.getText().isEmpty();
+        crypto.clearButton.setEnabled(inputClearIsUseful);
 
-        boolean genClearIsUseful = !cryption.generatedText.getText().isEmpty();
-        cryption.genClearButton.setEnabled(genClearIsUseful);
+        boolean genClearIsUseful = !crypto.generatedText.getText().isEmpty();
+        crypto.genClearButton.setEnabled(genClearIsUseful);
 
         boolean generatePossible = keys.publicKeyText.getText().isEmpty() && keys.privateKeyText.getText().isEmpty();
         keys.generateButton.setEnabled(generatePossible);
 
-        boolean useGeneratedPossible = !cryption.generatedText.getText().isEmpty();
-        cryption.useGeneratedButton.setEnabled(useGeneratedPossible);
+        boolean useGeneratedPossible = !crypto.generatedText.getText().isEmpty();
+        crypto.useGeneratedButton.setEnabled(useGeneratedPossible);
     }
-
 
 }
