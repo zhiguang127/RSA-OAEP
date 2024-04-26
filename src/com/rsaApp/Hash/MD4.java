@@ -219,6 +219,11 @@ public class MD4 {
         }
         return sb.toString();
     }
+    public static String encrypt(String s){
+        return toHexString(mdfour(s.getBytes()));
+    }
+
+
 
 //	public static void main(String[] args) {
 //		System.out.println(enCode(""));

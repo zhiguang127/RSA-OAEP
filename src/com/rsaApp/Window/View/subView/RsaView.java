@@ -249,7 +249,7 @@ public class RsaView extends JPanel {
         applyErrorProtection();
     }
 
-    //这个函数用于处理错误保护
+    //这个函数用于错误保护，不符合条件的按钮将被禁用
     private void applyErrorProtection() {
         boolean cryptoPossible = !keys.publicKeyText.getText().isEmpty() && !crypto.cryptoInputText.getText().isEmpty();
         crypto.encryptButton.setEnabled(cryptoPossible);

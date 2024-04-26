@@ -187,11 +187,11 @@ public class OAEP {
     }
 
     public String G_SHA256(String random_H) throws UnsupportedEncodingException {
-        return SHA256.encrypt(random_H);
+        return SHA256.enCode(random_H);
     }
 
     public String G_MD5(String random_H) throws UnsupportedEncodingException {
-        return MD5.encode(random_H);
+        return MD5.enCode(random_H);
     }
 
     public String H_MD4(String message) {
@@ -201,12 +201,12 @@ public class OAEP {
 
     public String H_SHA256(String message) {
         String message_H = message.substring(0, RSA.Length - r_Length);
-        return SHA256.encrypt(message_H);
+        return SHA256.enCode(message_H);
     }
 
     public String H_MD5(String message) {
         String message_H = message.substring(0, RSA.Length - r_Length);
-        return MD5.encode(message_H);
+        return MD5.enCode(message_H);
     }
 
     //构造函数

@@ -24,35 +24,17 @@ public class SHA256 {
             0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
             0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
 
+    public static String enCode(String msg) {
+        byte[] bytes = msg.getBytes(StandardCharsets.UTF_8);
+        return enCode(bytes);
+    }
+
     public static String encrypt(String msg) {
         byte[] bytes = msg.getBytes(StandardCharsets.UTF_8);
         return encrypt(bytes);
     }
 
-    public static String encryptFile(String filePath) {
-
-        InputStream fis = null;
-        try {
-            fis = new FileInputStream(filePath);
-            byte[] bytes = new byte[fis.available()];
-            fis.read(bytes);
-            return encrypt(bytes);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-
-    public static String encrypt(byte[] bytes) {
+    public static String enCode(byte[] bytes) {
         //h 复制初始化哈希值
         int[] h = Arrays.copyOf(H, H.length);
         // k复制初始化常量
@@ -114,6 +96,59 @@ public class SHA256 {
         }
         return sb.toString();
     }
+
+        public static String encrypt(byte[] bytes) {
+        //h 复制初始化哈希值
+        int[] h = Arrays.copyOf(H, H.length);
+        // k复制初始化常量
+        int[] k = Arrays.copyOf(KL, KL.length);
+        //消息变成二进制后的长度
+        long fileSize = bytes.length * 8L;
+        int mod = (int) (fileSize % 512);
+        //计算补位后的长度
+        long length = fileSize + (mod < 448 ? (448 - mod) : 448 + (512 - mod)) + (512 - 448);
+        //计算分组数量，以512位为单位分成N块，
+        long group_num = length / 512;
+
+        //遍历消息块
+        for (int i = 0; i < group_num; i++) {
+            //
+            int[] m = new int[64];
+            boolean flag = false;
+            //分成64组，每组32-bit
+            for (int j = 64 * i, n = 0; j < 64 * (i + 1); j++, n++) {
+                if (j < bytes.length) {
+                    //第k组
+                    m[n] = bytes[j] & 0xff;
+                } else {
+                    //补位开始，第一位补1，后面补0
+                    if (!flag) {
+                        m[n] = 0b10000000;
+                        flag = true;
+                    }
+                    //后64位，补原始消息二进制的长度
+                    if (j == 64 * (i + 1) - 1) {
+                        //转成二进制
+                        String bin = fill_zero(Long.toBinaryString(fileSize), 32);
+                        m[n - 3] = Integer.parseInt(bin.substring(0, bin.length() - 24), 2);
+                        m[n - 2] = Integer.parseInt(bin.substring(bin.length() - 24, bin.length() - 16), 2);
+                        m[n - 1] = Integer.parseInt(bin.substring(bin.length() - 16, bin.length() - 8), 2);
+                        m[n] = Integer.parseInt(bin.substring(24), 2);
+                    }
+                    //补位结束
+                }
+            }
+            //循环内的 摘要计算
+            calculate_sha_256(h, k, m);
+        }
+        //将h1...h8转16进制字符串 拼接起来就是最后的哈希结果
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < h.length; i++) {
+            result.append(fill_zero(Integer.toHexString((int) h[i]), 8));
+        }
+            return result.toString();
+    }
+
 
 
     private static int[] get64W(int[] cw2) {

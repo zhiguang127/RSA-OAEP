@@ -20,7 +20,7 @@ public class MainWindow extends JFrame {
         this.setBounds(100, 100, 600, 600);
         this.setResizable(false);
         this.setLocationRelativeTo(null);
-        this.setVisible(true);
+        this.setVisible(false);
         //设置窗口大小和关闭方式
         setCloseWay();
         //设置窗口图标
