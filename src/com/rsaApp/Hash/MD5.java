@@ -43,7 +43,17 @@ public class MD5 {
         }
         return "";
     }
-
-
-
+    public static String encryptWithSalt(String s, String salt, int iterations){
+        String message = s;
+        for (int i = 0; i < iterations; i++) {
+            System.out.println("第"+(i+1)+"次迭代");
+            if (salt != null){
+                message = message + salt;
+            }
+            System.out.println("明文:" + message);
+            message = encrypt(message);
+            // System.out.println(message);
+        }
+        return message;
+    }
 }

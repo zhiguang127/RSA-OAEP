@@ -27,39 +27,47 @@ public class HashView extends JPanel {
         ComponentUtil.onKeyReleased(this::applyErrorProtection, message.MessageText, generated.HashCodeText);
         ComponentUtil.onMouseReleased(this::handleClearButton, message.clearButton);
         ComponentUtil.onMouseReleased(this::handleGeneratedClearButton, generated.outputClearButton);
-        //当鼠标点击时，读取MessageText和选择的哈希函数，然后调用加密函数
         ComponentUtil.onMouseReleased(() -> {
             try {
-                HashEncrypt(message.MessageText, message.hashList, generated.HashCodeText);
+                HashEncrypt(message.MessageText, message.hashList, generated.HashCodeText, message.saltList, message.iterationList);
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
         }, message.generateButton);
-        //当鼠标点击复制按钮时，调用handleCopyButton函数
         ComponentUtil.onMouseReleased(this::handleCopyButton, generated.copyButton);
-
     }
 
-    private void HashEncrypt(JTextArea messagePane, JComboBox hashWay, JTextArea HashCode) throws Exception {
+    private void HashEncrypt(JTextArea messagePane, JComboBox hashWay, JTextArea HashCode, JComboBox saltWay,JComboBox iterationWay) throws Exception {
         String message = messagePane.getText();
         if (message.isEmpty()) {
+            //弹窗提示未输入明文
+            JOptionPane.showMessageDialog(null, "未输入明文", "错误", JOptionPane.ERROR_MESSAGE);
             throw new Exception("未输入明文");
         }
-        System.out.println(message);
+        //System.out.println(message);
         String hashWayString = (String) hashWay.getSelectedItem();
+        String saltWayString = (String) saltWay.getSelectedItem();
+        int iteration = Integer.parseInt((String) iterationWay.getSelectedItem());
+        // System.out.println(iteration);
+        // System.out.println(saltWayString);
+        String salt = null; //根据选择的盐值，返回对应的盐值
+        if (saltWayString != null) {
+            salt = ComponentUtil.getSalt(saltWayString);
+        }
+        // System.out.println(salt);
         //根据hashWayString的内容调用不同的哈希函数，switch语句
         if (hashWayString != null) {
             switch (hashWayString) {
                 case "MD4":
-                    HashCode.setText(MD4.encrypt(message));
+                    HashCode.setText(MD4.encryptWithSalt(message, salt, iteration));
                     applyErrorProtection();
                     break;
                 case "MD5":
-                    HashCode.setText(MD5.encrypt(message));
+                    HashCode.setText(MD5.encryptWithSalt(message, salt, iteration));
                     applyErrorProtection();
                     break;
                 case "SHA256":
-                    HashCode.setText(SHA256.encrypt(message));
+                    HashCode.setText(SHA256.encryptWithSalt(message, salt, iteration));
                     applyErrorProtection();
                     break;
                 default:
@@ -78,6 +86,8 @@ public class HashView extends JPanel {
     private static class messagePanel extends JPanel {
         private final JTextArea MessageText;
         private final JComboBox hashList;
+        private final JComboBox saltList;
+        private final JComboBox iterationList;
         private final JButton generateButton;
         private final JButton clearButton;
 
@@ -96,9 +106,9 @@ public class HashView extends JPanel {
             privateKeyScroller.setBounds(10, 43, 525, 151);
 
             generateButton = new JButton("加密");
-            generateButton.setBounds(253, 219, 136, 23);
+            generateButton.setBounds(263, 219, 126, 23);
             clearButton = new JButton("清空");
-            clearButton.setBounds(399, 219, 136, 23);
+            clearButton.setBounds(399, 219, 126, 23);
             clearButton.setEnabled(false);
 
             JLabel paddingLabel = new JLabel("哈希函数:");
@@ -114,11 +124,45 @@ public class HashView extends JPanel {
                     e.printStackTrace();
                 }
             }
-            hashList.setBounds(10, 219, 233, 21);
+            hashList.setBounds(10, 219, 78, 21);
             hashList.setSelectedIndex(1);
+
+            JLabel saltLabel = new JLabel("盐值:");
+            saltLabel.setBounds(98, 203, 66, 14);
+
+            saltList = new JComboBox();
+            //把盐值添加到下拉框中
+            String[] salts = {"无", "盐值1","盐值2","盐值3"};
+            for (String salt : salts) {
+                try {
+                    saltList.addItem(salt);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            saltList.setBounds(98, 219, 68, 21);
+            saltList.setSelectedIndex(0);
+
+            JLabel iterationLabel = new JLabel("迭代次数:");
+            iterationLabel.setBounds(176, 203, 66, 14);
+
+            iterationList = new JComboBox();
+            String[] iterations = {"1", "5", "10", "15", "20"};
+            for (String iteration : iterations) {
+                try {
+                    iterationList.addItem(iteration);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            iterationList.setBounds(176, 219, 68, 21);
+            iterationList.setSelectedIndex(0);
+
             ComponentUtil.add(this, privateKeyLabel,
                     privateKeyScroller, generateButton,
-                    clearButton, paddingLabel, hashList);
+                    clearButton, paddingLabel, hashList,
+                    saltLabel, saltList,
+                    iterationLabel, iterationList);
 
             ComponentUtil.add(parent, this);
         }

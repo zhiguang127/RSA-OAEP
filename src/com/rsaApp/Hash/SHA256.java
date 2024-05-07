@@ -34,6 +34,20 @@ public class SHA256 {
         return encrypt(bytes);
     }
 
+    public static String encryptWithSalt(String s, String salt, int iterations){
+        String message = s;
+        for (int i = 0; i < iterations; i++) {
+            System.out.println("第"+(i+1)+"次迭代");
+            if (salt != null){
+                message = message + salt;
+            }
+            System.out.println("明文:" + message);
+            message = encrypt(message);
+            // System.out.println(message);
+        }
+        return message;
+    }
+
     public static String enCode(byte[] bytes) {
         //h 复制初始化哈希值
         int[] h = Arrays.copyOf(H, H.length);
