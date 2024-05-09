@@ -155,6 +155,9 @@ public class RSA {
 
         System.out.println("publicKey: " + publicKey);
         System.out.println("privateKey: " + privateKey);
+        //把公钥和私钥写入文件
+        //Util.writePublicKey(publicKey, "publicKey.pem");
+        //Util.writePrivateKey(privateKey, "privateKey.pem");
 
         String message = "欲穷千里目，更上一层楼";
         System.out.println("message: " + message);

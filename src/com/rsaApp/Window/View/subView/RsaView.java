@@ -2,6 +2,7 @@ package com.rsaApp.Window.View.subView;
 
 import com.rsaApp.OAEP_RSA.RSA;
 import com.rsaApp.OAEP_RSA.RSAKeyGenertor;
+import com.rsaApp.OAEP_RSA.Util;
 import com.rsaApp.shared.ComponentUtil;
 
 import javax.swing.*;
@@ -67,6 +68,87 @@ public class RsaView extends JPanel {
             }
         }, crypto.decryptButton);
 
+        ComponentUtil.onMouseReleased(() -> {
+            try {
+                //首先弹出一个对话框，让用户选择文件，若用户选择了文件，则写入文件，若用户选择了目录，则在目录下生成文件再写入
+                String publicKeyPemfilePath="";
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                fileChooser.setDialogTitle("请选择文件或目录");
+                fileChooser.showOpenDialog(null);
+                String path = fileChooser.getSelectedFile().getPath();
+                //如果选择的是文件，则直接写入或读取文件文件
+                if(fileChooser.getSelectedFile().isFile()){
+                    //如果公钥输入框不为空，则写入公钥文件
+                    publicKeyPemfilePath = path;
+                   // System.out.println(publicKeyPemfilePath);
+                    if(!keys.publicKeyText.getText().isEmpty()){
+                        Util.writePublicKey(keys.publicKeyText.getText(), publicKeyPemfilePath);
+                        //弹出一个对话框，提示用户写入成功
+                        JOptionPane.showMessageDialog(null, "写入成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
+                    }else {
+                        String publicKey = Util.readPublicKey(publicKeyPemfilePath);
+                        keys.publicKeyText.setText(publicKey);
+                        //弹出一个对话框，提示用户读取成功
+                        JOptionPane.showMessageDialog(null, "读取成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }else {
+                    //如果选择的是目录，则在目录下生成文件再写入文件
+                    if(!keys.publicKeyText.getText().isEmpty()){
+                        publicKeyPemfilePath = path + "/publicKey.pem";
+                        Util.writePublicKey(keys.publicKeyText.getText(), publicKeyPemfilePath);
+                        //弹出一个对话框，提示用户写入成功
+                        JOptionPane.showMessageDialog(null, "写入成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            } catch (Exception e) {
+                // JOptionPane.showMessageDialog(null, "写PEM文件异常" , "错误", JOptionPane.ERROR_MESSAGE);
+                throw new RuntimeException(e);
+            }
+            applyErrorProtection();
+        }, keys.loadPublicKeyButton);
+        ComponentUtil.onMouseReleased(()->{
+            try {
+                //首先弹出一个对话框，让用户选择文件，若用户选择了文件，则写入文件，若用户选择了目录，则在目录下生成文件再写入
+                String privateKeyPemfilePath="";
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                fileChooser.setDialogTitle("请选择文件或目录");
+                fileChooser.showOpenDialog(null);
+                String path = fileChooser.getSelectedFile().getPath();
+                //如果选择的是文件，则直接写入或读取文件文件
+                if(fileChooser.getSelectedFile().isFile()){
+                    //如果公钥输入框不为空，则写入公钥文件
+                    privateKeyPemfilePath = path;
+                    // System.out.println(privateKeyPemfilePath);
+                    if(!keys.privateKeyText.getText().isEmpty()){
+                        Util.writePublicKey(keys.privateKeyText.getText(), privateKeyPemfilePath);
+                        //弹出一个对话框，提示用户写入成功
+                        JOptionPane.showMessageDialog(null, "写入成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
+                    }else {
+                        String publicKey = Util.readPublicKey(privateKeyPemfilePath);
+                        keys.privateKeyText.setText(publicKey);
+                        //弹出一个对话框，提示用户读取成功
+                        JOptionPane.showMessageDialog(null, "读取成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }else {
+                    //如果选择的是目录，则在目录下生成文件再写入文件
+                    if(!keys.privateKeyText.getText().isEmpty()){
+                        privateKeyPemfilePath = path + "/privateKey.pem";
+                        Util.writePublicKey(keys.privateKeyText.getText(), privateKeyPemfilePath);
+                        //弹出一个对话框，提示用户写入成功
+                        JOptionPane.showMessageDialog(null, "写入成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            } catch (Exception e) {
+                // JOptionPane.showMessageDialog(null, "读写PEM文件异常" , "错误", JOptionPane.ERROR_MESSAGE);
+                throw new RuntimeException(e);
+            }
+            applyErrorProtection();
+        },keys.loadPrivateKeyButton);
+
+
+
     }
 
     private void generateKeyPair() throws Exception {
@@ -119,6 +201,8 @@ public class RsaView extends JPanel {
         private final JComboBox paddingList;
         private final JButton generateButton;
         private final JButton clearButton;
+        private final JButton loadPublicKeyButton;
+        private final JButton loadPrivateKeyButton;
 
         public KeysPanel(RsaView parent) {
             //设置边框
@@ -143,13 +227,18 @@ public class RsaView extends JPanel {
             publicKeyScroller.setBounds(10, 124, 525, 45);
 
             generateButton = new JButton("生成密钥对");
-            generateButton.setBounds(253, 190, 136, 23);
+            generateButton.setBounds(333, 190, 96, 23);
             clearButton = new JButton("清空");
-            clearButton.setBounds(399, 190, 136, 23);
+            clearButton.setBounds(441, 190, 96, 23);
             clearButton.setEnabled(false);
+            loadPrivateKeyButton = new JButton("导入/出私钥");
+            loadPrivateKeyButton.setBounds(225, 190, 96, 23);
+            loadPublicKeyButton = new JButton("导入/出公钥");
+            loadPublicKeyButton.setBounds(117, 190, 96, 23);
 
-            JLabel paddingLabel = new JLabel("H函数:");
-            paddingLabel.setBounds(10, 175, 46, 14);
+
+            JLabel paddingLabel = new JLabel("H&G函数:");
+            paddingLabel.setBounds(10, 175, 66, 14);
 
             paddingList = new JComboBox();
             //把H函数添加到下拉框中
@@ -161,11 +250,12 @@ public class RsaView extends JPanel {
                     e.printStackTrace();
                 }
             }
-            paddingList.setBounds(10, 190, 233, 21);
+            paddingList.setBounds(10, 190, 88, 21);
             paddingList.setSelectedIndex(1);
             ComponentUtil.add(this, privateKeyLabel, publicKeyLabel,
-                    privateKeyScroller, publicKeyScroller, generateButton,
-                    clearButton, paddingLabel, paddingList);
+                    privateKeyScroller, publicKeyScroller,
+                    generateButton, clearButton, loadPrivateKeyButton, loadPublicKeyButton,
+                    paddingLabel, paddingList);
 
             ComponentUtil.add(parent, this);
         }
@@ -188,8 +278,8 @@ public class RsaView extends JPanel {
             setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Encryption / Decryption", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(101, 208, 208)));
             setBounds(10, 265, 564, 258);
 
-            JLabel cryptionInputLabel = new JLabel("Cypher / Plain Text");
-            cryptionInputLabel.setBounds(10, 24, 110, 14);
+            JLabel cryptionInputLabel = new JLabel("Cypher / Plain Text:");
+            cryptionInputLabel.setBounds(10, 24, 112, 14);
             cryptoInputText = new JTextArea();
             cryptoInputText.setLineWrap(true);
             cryptoInputText.setBounds(10, 43, 525, 45);

@@ -1,7 +1,11 @@
 package com.rsaApp.OAEP_RSA;
 
 //Util类：用于实现一些通用的功能，如Base64编码/解码，填充/取消填充等。
-
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class Util {
@@ -53,5 +57,51 @@ public class Util {
         return str.toString();
     }
 
+
+    public static void writePrivateKey(String base64EncodedKey, String pemFilePath) throws IOException {
+        // 添加PEM格式的起始和结束标记
+        String pemData = "-----BEGIN PRIVATE KEY-----\n" + base64EncodedKey + "\n-----END PRIVATE KEY-----";
+        writeToFile(pemData, pemFilePath);
+    }
+
+    public static void writePublicKey(String base64EncodedKey, String pemFilePath) throws IOException {
+        // 添加PEM格式的起始和结束标记
+        String pemData = "-----BEGIN PUBLIC KEY-----\n" + base64EncodedKey + "\n-----END PUBLIC KEY-----";
+        writeToFile(pemData, pemFilePath);
+    }
+
+    private static void writeToFile(String data, String filePath) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            writer.write(data);
+            System.out.println("PEM文件写入成功！");
+        }
+    }
+
+    public static String readPrivateKey(String pemFilePath) throws IOException {
+        String pemData = readFileAsString(pemFilePath);
+        return extractKeyFromPEM(pemData);
+    }
+
+    public static String readPublicKey(String pemFilePath) throws IOException {
+        String pemData = readFileAsString(pemFilePath);
+        return extractKeyFromPEM(pemData);
+    }
+
+    private static String readFileAsString(String filePath) throws IOException {
+        StringBuilder content = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+        }
+        return content.toString();
+    }
+    private static String extractKeyFromPEM(String pemData) {
+        // 移除PEM格式的起始和结束标记
+        return pemData.replaceAll("-----BEGIN (PUBLIC|PRIVATE) KEY-----\n", "")
+                .replaceAll("\n-----END (PUBLIC|PRIVATE) KEY-----", "")
+                .replaceAll("\n", "");
+    }
 
 }

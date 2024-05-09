@@ -83,7 +83,7 @@ public class OAEP {
         return paddedMessage;
     }
 
-    //首先是Oaep的Encrypt，H是MD4哈希算法，G可以是MD4，SHA256，MD5
+    //首先是Oaep的Encrypt，H和G可以是MD4，SHA256，MD5
     public String OaepEncrypt(String message, String G) throws UnsupportedEncodingException {
 
         String r = message.substring(RSA.Length - r_Length);
