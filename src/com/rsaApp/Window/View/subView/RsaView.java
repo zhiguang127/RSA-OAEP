@@ -20,7 +20,6 @@ public class RsaView extends JPanel {
     private final RSA rsa = new RSA();
     private int messageLength = 0;
 
-
     private void setMessagelength(int length) {
         messageLength = length;
     }
@@ -79,7 +78,6 @@ public class RsaView extends JPanel {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            applyErrorProtection();
         }, keys.loadPublicKeyButton);
 
         //当鼠标点击时，调用PrivatePemFile函数
@@ -90,7 +88,6 @@ public class RsaView extends JPanel {
                 // JOptionPane.showMessageDialog(null, "读写PEM文件异常" , "错误", JOptionPane.ERROR_MESSAGE);
                 throw new RuntimeException(e);
             }
-            applyErrorProtection();
         }, keys.loadPrivateKeyButton);
     }
 
@@ -98,7 +95,7 @@ public class RsaView extends JPanel {
         String privateKeyPemfilePath = "";
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        fileChooser.setDialogTitle("请选择文件或目录");
+        fileChooser.setDialogTitle("请选择存放私钥的文件或要导出到的目录");
         fileChooser.showOpenDialog(null);
         String path = fileChooser.getSelectedFile().getPath();
         //如果选择的是文件，则直接写入或读取文件文件
@@ -120,13 +117,14 @@ public class RsaView extends JPanel {
                 JOptionPane.showMessageDialog(null, "写入成功", "提示", JOptionPane.INFORMATION_MESSAGE);
             }
         }
+        applyErrorProtection();
     }
 
     private void PublicPemFile() throws IOException {
         String publicKeyPemfilePath = "";
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        fileChooser.setDialogTitle("请选择文件或目录");
+        fileChooser.setDialogTitle("请选择存放公钥的文件或要导出到的目录");
         fileChooser.showOpenDialog(null);
         String path = fileChooser.getSelectedFile().getPath();
         //如果选择的是文件，则直接写入或读取文件文件
@@ -152,6 +150,7 @@ public class RsaView extends JPanel {
                 JOptionPane.showMessageDialog(null, "写入成功", "提示", JOptionPane.INFORMATION_MESSAGE);
             }
         }
+        applyErrorProtection();
     }
 
     private void generateKeyPair() throws Exception {

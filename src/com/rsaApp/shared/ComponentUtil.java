@@ -46,7 +46,6 @@ public final class ComponentUtil {
         }
     }
 
-
     //根据选择的盐值，返回对应的盐值
     public static String getSalt(String chosedSalt) {
         String salt;
