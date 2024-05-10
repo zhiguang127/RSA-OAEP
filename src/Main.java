@@ -19,7 +19,8 @@ public class Main {
     private static void applyFlatDarkLafLook() {
         try {
             UIManager.setLookAndFeel(new FlatDarkLaf());
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
         }
     }
 
