@@ -1,9 +1,6 @@
 package com.rsaApp.Hash;
 
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -34,11 +31,11 @@ public class SHA256 {
         return encrypt(bytes);
     }
 
-    public static String encryptWithSalt(String s, String salt, int iterations){
+    public static String encryptWithSalt(String s, String salt, int iterations) {
         String message = s;
         for (int i = 0; i < iterations; i++) {
-            System.out.println("第"+(i+1)+"次迭代");
-            if (salt != null){
+            System.out.println("第" + (i + 1) + "次迭代");
+            if (salt != null) {
                 message = message + salt;
             }
             System.out.println("明文:" + message);
@@ -111,7 +108,7 @@ public class SHA256 {
         return sb.toString();
     }
 
-        public static String encrypt(byte[] bytes) {
+    public static String encrypt(byte[] bytes) {
         //h 复制初始化哈希值
         int[] h = Arrays.copyOf(H, H.length);
         // k复制初始化常量
@@ -160,9 +157,8 @@ public class SHA256 {
         for (int i = 0; i < h.length; i++) {
             result.append(fill_zero(Integer.toHexString((int) h[i]), 8));
         }
-            return result.toString();
+        return result.toString();
     }
-
 
 
     private static int[] get64W(int[] cw2) {

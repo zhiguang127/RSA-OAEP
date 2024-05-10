@@ -69,6 +69,10 @@ public class OAEP {
         }
         //保留处理成 01 序列后的明文长度
         setMessageLength(messageBytes.length);
+        if (messageBytes.length >768) {
+            throw new UnsupportedEncodingException("Message is too long");
+        }
+        //System.out.println("messageBytes.length: " + messageBytes.length);
         byte[] random = GenerateRandom(r_Length);
         byte[] paddedMessage = new byte[RSA.Length];
         for (int i = 0; i < this.getMessageLength(); i++) {

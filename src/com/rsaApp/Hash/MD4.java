@@ -1,8 +1,6 @@
 package com.rsaApp.Hash;
 
 
-import com.formdev.flatlaf.util.SystemInfo;
-
 public class MD4 {
 
     private static int A, B, C, D;
@@ -221,15 +219,16 @@ public class MD4 {
         }
         return sb.toString();
     }
-    public static String encrypt(String s){
+
+    public static String encrypt(String s) {
         return toHexString(mdfour(s.getBytes()));
     }
 
-    public static String encryptWithSalt(String s, String salt, int iterations){
+    public static String encryptWithSalt(String s, String salt, int iterations) {
         String message = s;
         for (int i = 0; i < iterations; i++) {
-            System.out.println("第"+(i+1)+"次迭代");
-            if (salt != null){
+            System.out.println("第" + (i + 1) + "次迭代");
+            if (salt != null) {
                 message = message + salt;
             }
             System.out.println("明文:" + message);

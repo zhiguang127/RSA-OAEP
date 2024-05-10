@@ -1,7 +1,5 @@
 package com.rsaApp.OAEP_RSA;
 
-import javax.crypto.Cipher;
-import java.io.ByteArrayOutputStream;
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -67,10 +65,6 @@ public class RSAKeyGenertor {
 
     public static String encryptBASE64(byte[] key) {
         return new String(Base64.getEncoder().encode(key));
-    }
-
-    public static byte[] decryptBASE64(String key) {
-        return Base64.getDecoder().decode(key);
     }
 
 }

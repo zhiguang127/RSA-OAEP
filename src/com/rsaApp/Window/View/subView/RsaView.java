@@ -8,9 +8,10 @@ import com.rsaApp.shared.ComponentUtil;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.io.IOException;
 import java.util.Map;
 
-// @SuppressWarnings("serial")
+@SuppressWarnings("serial")
 public class RsaView extends JPanel {
     // 两个内部成员对象
     private final KeysPanel keys;
@@ -20,7 +21,7 @@ public class RsaView extends JPanel {
     private int messageLength = 0;
 
 
-    private void setMessagelength(int length){
+    private void setMessagelength(int length) {
         messageLength = length;
     }
 
@@ -31,7 +32,7 @@ public class RsaView extends JPanel {
         handleEvents();
     }
 
-    //事件处理函数，全都调用工具类
+    //事件处理函数
     private void handleEvents() {
         ComponentUtil.onKeyReleased(this::applyErrorProtection, keys.privateKeyText, keys.publicKeyText, crypto.cryptoInputText);
         ComponentUtil.onMouseReleased(this::handleClearButton, keys.clearButton);
@@ -47,108 +48,110 @@ public class RsaView extends JPanel {
                 throw new RuntimeException(e);
             }
         }, keys.generateButton);
+
+        //当鼠标点击时，调用useGeneratedButton函数
         ComponentUtil.onMouseReleased(() -> crypto.cryptoInputText.setText(crypto.generatedText.getText()), crypto.useGeneratedButton);
 
-        //当鼠标点击时，调用RSA中加密函数
+        //当鼠标点击时，调用RsaEncrypt函数
         ComponentUtil.onMouseReleased(() -> {
             try {
                 RsaEncrypt(keys.publicKeyText, keys.paddingList);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "加密异常 " , "错误", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "加密异常，请检查明文是否过长", "错误", JOptionPane.ERROR_MESSAGE);
                 throw new RuntimeException(e);
             }
         }, crypto.encryptButton);
-        //当鼠标点击时，调用RSA中解密函数
+
+        //当鼠标点击时，调用RsaDecrypt函数
         ComponentUtil.onMouseReleased(() -> {
             try {
                 RsaDecrypt(keys.privateKeyText, keys.paddingList);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "解密异常，请检查密文是否合法"  , "错误", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "解密异常，请检查密文是否合法", "错误", JOptionPane.ERROR_MESSAGE);
                 throw new RuntimeException(e);
             }
         }, crypto.decryptButton);
 
+        //当鼠标点击时，调用PublicPemFile函数
         ComponentUtil.onMouseReleased(() -> {
             try {
-                //首先弹出一个对话框，让用户选择文件，若用户选择了文件，则写入文件，若用户选择了目录，则在目录下生成文件再写入
-                String publicKeyPemfilePath="";
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-                fileChooser.setDialogTitle("请选择文件或目录");
-                fileChooser.showOpenDialog(null);
-                String path = fileChooser.getSelectedFile().getPath();
-                //如果选择的是文件，则直接写入或读取文件文件
-                if(fileChooser.getSelectedFile().isFile()){
-                    //如果公钥输入框不为空，则写入公钥文件
-                    publicKeyPemfilePath = path;
-                   // System.out.println(publicKeyPemfilePath);
-                    if(!keys.publicKeyText.getText().isEmpty()){
-                        Util.writePublicKey(keys.publicKeyText.getText(), publicKeyPemfilePath);
-                        //弹出一个对话框，提示用户写入成功
-                        JOptionPane.showMessageDialog(null, "写入成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
-                    }else {
-                        String publicKey = Util.readPublicKey(publicKeyPemfilePath);
-                        keys.publicKeyText.setText(publicKey);
-                        //弹出一个对话框，提示用户读取成功
-                        JOptionPane.showMessageDialog(null, "读取成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                }else {
-                    //如果选择的是目录，则在目录下生成文件再写入文件
-                    if(!keys.publicKeyText.getText().isEmpty()){
-                        publicKeyPemfilePath = path + "/publicKey.pem";
-                        Util.writePublicKey(keys.publicKeyText.getText(), publicKeyPemfilePath);
-                        //弹出一个对话框，提示用户写入成功
-                        JOptionPane.showMessageDialog(null, "写入成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                }
+                PublicPemFile();
             } catch (Exception e) {
-                // JOptionPane.showMessageDialog(null, "写PEM文件异常" , "错误", JOptionPane.ERROR_MESSAGE);
                 throw new RuntimeException(e);
             }
             applyErrorProtection();
         }, keys.loadPublicKeyButton);
-        ComponentUtil.onMouseReleased(()->{
+
+        //当鼠标点击时，调用PrivatePemFile函数
+        ComponentUtil.onMouseReleased(() -> {
             try {
-                //首先弹出一个对话框，让用户选择文件，若用户选择了文件，则写入文件，若用户选择了目录，则在目录下生成文件再写入
-                String privateKeyPemfilePath="";
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-                fileChooser.setDialogTitle("请选择文件或目录");
-                fileChooser.showOpenDialog(null);
-                String path = fileChooser.getSelectedFile().getPath();
-                //如果选择的是文件，则直接写入或读取文件文件
-                if(fileChooser.getSelectedFile().isFile()){
-                    //如果公钥输入框不为空，则写入公钥文件
-                    privateKeyPemfilePath = path;
-                    // System.out.println(privateKeyPemfilePath);
-                    if(!keys.privateKeyText.getText().isEmpty()){
-                        Util.writePublicKey(keys.privateKeyText.getText(), privateKeyPemfilePath);
-                        //弹出一个对话框，提示用户写入成功
-                        JOptionPane.showMessageDialog(null, "写入成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
-                    }else {
-                        String publicKey = Util.readPublicKey(privateKeyPemfilePath);
-                        keys.privateKeyText.setText(publicKey);
-                        //弹出一个对话框，提示用户读取成功
-                        JOptionPane.showMessageDialog(null, "读取成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                }else {
-                    //如果选择的是目录，则在目录下生成文件再写入文件
-                    if(!keys.privateKeyText.getText().isEmpty()){
-                        privateKeyPemfilePath = path + "/privateKey.pem";
-                        Util.writePublicKey(keys.privateKeyText.getText(), privateKeyPemfilePath);
-                        //弹出一个对话框，提示用户写入成功
-                        JOptionPane.showMessageDialog(null, "写入成功" , "提示", JOptionPane.INFORMATION_MESSAGE);
-                    }
-                }
+                PrivatePemFile();
             } catch (Exception e) {
                 // JOptionPane.showMessageDialog(null, "读写PEM文件异常" , "错误", JOptionPane.ERROR_MESSAGE);
                 throw new RuntimeException(e);
             }
             applyErrorProtection();
-        },keys.loadPrivateKeyButton);
+        }, keys.loadPrivateKeyButton);
+    }
 
+    private void PrivatePemFile() throws IOException {
+        String privateKeyPemfilePath = "";
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        fileChooser.setDialogTitle("请选择文件或目录");
+        fileChooser.showOpenDialog(null);
+        String path = fileChooser.getSelectedFile().getPath();
+        //如果选择的是文件，则直接写入或读取文件文件
+        if (fileChooser.getSelectedFile().isFile()) {
+            //如果公钥输入框不为空，则写入公钥文件
+            privateKeyPemfilePath = path;
+            if (!keys.privateKeyText.getText().isEmpty()) {
+                Util.writePublicKey(keys.privateKeyText.getText(), privateKeyPemfilePath);
+                JOptionPane.showMessageDialog(null, "写入成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                String publicKey = Util.readPublicKey(privateKeyPemfilePath);
+                keys.privateKeyText.setText(publicKey);
+                JOptionPane.showMessageDialog(null, "读取成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } else {
+            if (!keys.privateKeyText.getText().isEmpty()) {
+                privateKeyPemfilePath = path + "/privateKey.pem";
+                Util.writePublicKey(keys.privateKeyText.getText(), privateKeyPemfilePath);
+                JOptionPane.showMessageDialog(null, "写入成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
+    }
 
-
+    private void PublicPemFile() throws IOException {
+        String publicKeyPemfilePath = "";
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        fileChooser.setDialogTitle("请选择文件或目录");
+        fileChooser.showOpenDialog(null);
+        String path = fileChooser.getSelectedFile().getPath();
+        //如果选择的是文件，则直接写入或读取文件文件
+        if (fileChooser.getSelectedFile().isFile()) {
+            //如果公钥输入框不为空，则写入公钥文件
+            publicKeyPemfilePath = path;
+            if (!keys.publicKeyText.getText().isEmpty()) {
+                Util.writePublicKey(keys.publicKeyText.getText(), publicKeyPemfilePath);
+                //弹出一个对话框，提示用户写入成功
+                JOptionPane.showMessageDialog(null, "写入成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                String publicKey = Util.readPublicKey(publicKeyPemfilePath);
+                keys.publicKeyText.setText(publicKey);
+                //弹出一个对话框，提示用户读取成功
+                JOptionPane.showMessageDialog(null, "读取成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } else {
+            //如果选择的是目录，则在目录下生成文件再写入文件
+            if (!keys.publicKeyText.getText().isEmpty()) {
+                publicKeyPemfilePath = path + "/publicKey.pem";
+                Util.writePublicKey(keys.publicKeyText.getText(), publicKeyPemfilePath);
+                //弹出一个对话框，提示用户写入成功
+                JOptionPane.showMessageDialog(null, "写入成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+            }
+        }
     }
 
     private void generateKeyPair() throws Exception {

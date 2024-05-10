@@ -5,7 +5,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.security.PublicKey;
 
 
 // 这个类就是把一些常用的方法封装起来，方便调用，都是静态方法
@@ -33,6 +32,7 @@ public final class ComponentUtil {
             });
         }
     }
+
     // 给多个组件添加鼠标监听器，当鼠标释放时执行action
     public static void onMouseReleased(Runnable action, Component... components) {
         for (Component component : components) {
@@ -48,10 +48,9 @@ public final class ComponentUtil {
 
 
     //根据选择的盐值，返回对应的盐值
-    public static String getSalt(String chosedSalt){
+    public static String getSalt(String chosedSalt) {
         String salt;
-        switch (chosedSalt)
-        {
+        switch (chosedSalt) {
             case "无":
                 break;
             case "盐值1":
@@ -69,7 +68,7 @@ public final class ComponentUtil {
                 salt = "NJUPT";
                 return salt;
         }
-       return null;
+        return null;
     }
 
 

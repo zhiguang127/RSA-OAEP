@@ -1,10 +1,10 @@
 package com.rsaApp.Window.View.subView;
 
-import com.rsaApp.shared.ComponentUtil;
-import com.rsaApp.shared.ClipboardTUtil;
 import com.rsaApp.Hash.MD4;
 import com.rsaApp.Hash.MD5;
 import com.rsaApp.Hash.SHA256;
+import com.rsaApp.shared.ClipboardTUtil;
+import com.rsaApp.shared.ComponentUtil;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -37,7 +37,7 @@ public class HashView extends JPanel {
         ComponentUtil.onMouseReleased(this::handleCopyButton, generated.copyButton);
     }
 
-    private void HashEncrypt(JTextArea messagePane, JComboBox hashWay, JTextArea HashCode, JComboBox saltWay,JComboBox iterationWay) throws Exception {
+    private void HashEncrypt(JTextArea messagePane, JComboBox hashWay, JTextArea HashCode, JComboBox saltWay, JComboBox iterationWay) throws Exception {
         String message = messagePane.getText();
         if (message.isEmpty()) {
             //弹窗提示未输入明文
@@ -132,7 +132,7 @@ public class HashView extends JPanel {
 
             saltList = new JComboBox();
             //把盐值添加到下拉框中
-            String[] salts = {"无", "盐值1","盐值2","盐值3"};
+            String[] salts = {"无", "盐值1", "盐值2", "盐值3"};
             for (String salt : salts) {
                 try {
                     saltList.addItem(salt);

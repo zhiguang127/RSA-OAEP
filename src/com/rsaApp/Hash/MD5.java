@@ -33,8 +33,8 @@ public class MD5 {
         return "";
     }
 
-    public static String encrypt(String s){
-         try {
+    public static String encrypt(String s) {
+        try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] md5 = md.digest(s.getBytes(StandardCharsets.UTF_8));
             return new BigInteger(1, md5).toString(16);
@@ -43,11 +43,12 @@ public class MD5 {
         }
         return "";
     }
-    public static String encryptWithSalt(String s, String salt, int iterations){
+
+    public static String encryptWithSalt(String s, String salt, int iterations) {
         String message = s;
         for (int i = 0; i < iterations; i++) {
-            System.out.println("第"+(i+1)+"次迭代");
-            if (salt != null){
+            System.out.println("第" + (i + 1) + "次迭代");
+            if (salt != null) {
                 message = message + salt;
             }
             System.out.println("明文:" + message);
