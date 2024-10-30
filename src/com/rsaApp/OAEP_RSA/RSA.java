@@ -121,35 +121,35 @@ public class RSA {
     }
 
     //测试
-//    public static void main(String[] args) throws Exception {
-//        RSA rsa = new RSA();
-//        //从RSAKeyGenertor中获取公钥和私钥
-//        RSAKeyGenertor rsaKeyGenertor = new RSAKeyGenertor();
-//        Map<String, Object> keyMap = rsaKeyGenertor.initKey(1024);
-//        String publicKey = rsaKeyGenertor.getPublicKeyStr(keyMap);
-//        String privateKey = rsaKeyGenertor.getPrivateKeyStr(keyMap);
-//
-//        System.out.println("publicKey: " + publicKey);
-//        System.out.println("privateKey: " + privateKey);
-//        //把公钥和私钥写入文件
-//        //Util.writePublicKey(publicKey, "publicKey.pem");
-//        //Util.writePrivateKey(privateKey, "privateKey.pem");
-//
-//        String message = "欲穷千里目更上一层楼欲穷千里目欲穷千里目更上一层楼欲穷千里目目目";
-//        int messageLength = message.length();
-//        System.out.println("message: " + message);
-//        String rsaEncrypted = rsa.encrypt(message, publicKey, "SHA256");
-//        System.out.println("rsaEncrypted: " + rsaEncrypted);
-//
-//        String rsaDecrypted = rsa.decrypt(rsaEncrypted, privateKey, "SHA256");
-//        rsaDecrypted = rsaDecrypted.substring(0, messageLength);
-//        System.out.println("finaDecrypted: " + rsaDecrypted);
-//        //获取rsa的oaep对象的messageLength
-//        int l = rsa.oaep.getMessageLength();
-//        rsa.setMessageLength(l);
-//        System.out.println("messageLength: " + messageLength);
-//
-//    }
+    public static void main(String[] args) throws Exception {
+        RSA rsa = new RSA();
+        //从RSAKeyGenertor中获取公钥和私钥
+        RSAKeyGenertor rsaKeyGenertor = new RSAKeyGenertor();
+        Map<String, Object> keyMap = rsaKeyGenertor.initKey(1024);
+        String publicKey = rsaKeyGenertor.getPublicKeyStr(keyMap);
+        String privateKey = rsaKeyGenertor.getPrivateKeyStr(keyMap);
+
+        System.out.println("publicKey: " + publicKey);
+        System.out.println("privateKey: " + privateKey);
+        //把公钥和私钥写入文件
+        //Util.writePublicKey(publicKey, "publicKey.pem");
+        //Util.writePrivateKey(privateKey, "privateKey.pem");
+
+        String message = "欲穷千里目，更上一层楼";
+        int messageLength = message.length();
+        System.out.println("message: " + message);
+        String rsaEncrypted = rsa.encrypt(message, publicKey, "SHA256");
+        System.out.println("rsaEncrypted: " + rsaEncrypted);
+
+        String rsaDecrypted = rsa.decrypt(rsaEncrypted, privateKey, "SHA256");
+        rsaDecrypted = rsaDecrypted.substring(0, messageLength);
+        System.out.println("finaDecrypted: " + rsaDecrypted);
+        //获取rsa的oaep对象的messageLength
+        int l = rsa.oaep.getMessageLength();
+        rsa.setMessageLength(l);
+        System.out.println("messageLength: " + messageLength);
+
+    }
 
 }
 
